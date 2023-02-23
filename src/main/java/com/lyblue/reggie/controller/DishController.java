@@ -135,6 +135,12 @@ public class DishController {
         return R.success("新增菜品成功");
     }
 
+    @PostMapping("/status/{status}")
+    public R<String> status(@PathVariable("status") Integer status,@RequestParam List<Long> ids){
+        dishService.updateDishStatusById(status,ids);
+        return R.success("售卖状态修改成功");
+    }
+
     /**
      * 根据条件来查询对应的菜品数据
      * @param dish
@@ -215,4 +221,15 @@ public class DishController {
 
         return R.success(dishDtoList);
     }
+
+    @DeleteMapping
+    public R<String> delete(Long ids){
+        dishService.removeById(ids);
+        return R.success("信息删除成功");
+    }
+
+
+
+
+
 }

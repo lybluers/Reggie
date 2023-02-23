@@ -3,9 +3,11 @@ package com.lyblue.reggie.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lyblue.reggie.common.R;
+import com.lyblue.reggie.dto.DishDto;
 import com.lyblue.reggie.dto.SetmealDto;
 import com.lyblue.reggie.entity.Category;
 import com.lyblue.reggie.entity.Setmeal;
+import com.lyblue.reggie.entity.SetmealDish;
 import com.lyblue.reggie.service.CategoryService;
 import com.lyblue.reggie.service.SetmealDIshService;
 import com.lyblue.reggie.service.SetmealService;
@@ -43,6 +45,23 @@ public class SetmealController {
         log.info("套餐信息:{}",setmealDto);
         setmealService.saveWithDish(setmealDto);
         return R.success("新增套餐成功");
+    }
+
+    /**
+     * 对菜品批量或者是单个 进行停售或者是起售
+     * @return
+     */
+    @PostMapping("/status/{status}")
+//这个参数这里一定记得加注解才能获取到参数，否则这里非常容易出问题
+    public R<String> status(@PathVariable("status") Integer status,@RequestParam List<Long> ids){
+        setmealService.updateSetmealStatusById(status,ids);
+        return R.success("售卖状态修改成功");
+    }
+
+    @GetMapping("/{id}")
+    public R<Setmeal> get(@PathVariable Long id){
+        Setmeal setmeal= setmealService.getDate(id);
+        return R.success(setmeal);
     }
 
     /**
@@ -118,6 +137,34 @@ public class SetmealController {
 
         List<Setmeal> list = setmealService.list(queryWrapper);
         return R.success(list);
+    }
+
+    @PutMapping
+    public R<String> edit(@RequestBody SetmealDto setmealDto){
+
+        if (setmealDto==null){
+            return R.error("请求异常");
+        }
+
+        if (setmealDto.getSetmealDishes()==null){
+            return R.error("套餐没有菜品,请添加套餐");
+        }
+        List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
+        Long setmealId = setmealDto.getId();
+
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId,setmealId);
+        setmealDIshService.remove(queryWrapper);
+
+        //为setmeal_dish表填充相关的属性
+        for (SetmealDish setmealDish : setmealDishes) {
+            setmealDish.setSetmealId(setmealId);
+        }
+        //批量把setmealDish保存到setmeal_dish表
+        setmealDIshService.saveBatch(setmealDishes);
+        setmealService.updateById(setmealDto);
+
+        return R.success("套餐修改成功");
     }
 
 }

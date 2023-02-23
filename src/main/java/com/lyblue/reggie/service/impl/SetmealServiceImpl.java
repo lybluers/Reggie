@@ -9,6 +9,7 @@ import com.lyblue.reggie.entity.SetmealDish;
 import com.lyblue.reggie.mapper.SetmealMapper;
 import com.lyblue.reggie.service.SetmealDIshService;
 import com.lyblue.reggie.service.SetmealService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,46 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
     @Autowired
     private SetmealDIshService setmealDIshService;
+
+    /**
+     * 根据套餐id修改售卖状态
+     * @param status
+     * @param ids
+     */
+    @Override
+    public void updateSetmealStatusById(Integer status,  List<Long> ids) {
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper();
+        queryWrapper.in(ids !=null,Setmeal::getId,ids);
+        List<Setmeal> list = this.list(queryWrapper);
+
+        for (Setmeal setmeal : list) {
+            if (setmeal != null){
+                setmeal.setStatus(status);
+                this.updateById(setmeal);
+            }
+        }
+    }
+
+    /**
+     * 回显套餐数据：根据套餐id查询套餐
+     * @return
+     */
+    @Override
+    public SetmealDto getDate(Long id) {
+        Setmeal setmeal = this.getById(id);
+        SetmealDto setmealDto = new SetmealDto();
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper();
+        //在关联表中查询，setmealdish
+        queryWrapper.eq(id!=null,SetmealDish::getSetmealId,id);
+
+        if (setmeal != null){
+            BeanUtils.copyProperties(setmeal,setmealDto);
+            List<SetmealDish> list = setmealDIshService.list(queryWrapper);
+            setmealDto.setSetmealDishes(list);
+            return setmealDto;
+        }
+        return null;
+    }
 
     /**
      * 新增套餐，同时保存套餐和菜品的关联关系

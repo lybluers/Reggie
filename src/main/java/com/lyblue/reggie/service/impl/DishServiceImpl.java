@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lyblue.reggie.dto.DishDto;
 import com.lyblue.reggie.entity.Dish;
 import com.lyblue.reggie.entity.DishFlavor;
+import com.lyblue.reggie.entity.Setmeal;
 import com.lyblue.reggie.mapper.DishMapper;
 import com.lyblue.reggie.service.DishFlavorService;
 import com.lyblue.reggie.service.DishService;
@@ -41,6 +42,25 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         // 保存菜品口味数据到菜品口味表
         dishFlavorService.saveBatch(flavors);
 
+    }
+
+    /**
+     * 根据套餐id修改售卖状态
+     * @param status
+     * @param ids
+     */
+    @Override
+    public void updateDishStatusById(Integer status,  List<Long> ids) {
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper();
+        queryWrapper.in(ids !=null,Dish::getId,ids);
+        List<Dish> list = this.list(queryWrapper);
+
+        for (Dish dish : list) {
+            if (dish != null){
+                dish.setStatus(status);
+                this.updateById(dish);
+            }
+        }
     }
 
     /**

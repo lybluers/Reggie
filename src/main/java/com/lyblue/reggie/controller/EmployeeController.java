@@ -86,8 +86,6 @@ public class EmployeeController {
 //        employee.setCreateUser(empId);
 //        employee.setUpdateUser(empId);
 
-
-
         employeeService.save(employee);
         return R.success("新增员工成功");
 
